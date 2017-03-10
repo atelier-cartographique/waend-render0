@@ -1,0 +1,34 @@
+{
+    "compilerOptions": {
+        "project": "src/render0",
+        "outDir": "js",
+        "module": "commonjs",
+        "moduleResolution": "node",
+        "target": "es6",
+        "lib": [
+            "webworker",
+            "es6",
+            "scripthost"
+        ],
+        "alwaysStrict": true,
+        "noImplicitAny": true,
+        "noImplicitReturns": true,
+        "noImplicitThis": true,
+        "noImplicitUseStrict": false,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "strictNullChecks": true,
+        "removeComments": true,
+        "sourceMap": true
+    },
+    "exclude": [
+        "node_modules",
+        "**/*.spec.ts",
+        "local_packages",
+        "src/commands",
+        "src/map",
+        "src/webconsole",
+        "src/embed",
+        "src/view"
+    ]
+}
