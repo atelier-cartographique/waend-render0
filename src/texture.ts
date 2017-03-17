@@ -1,10 +1,7 @@
 
-import { ModelProperties } from "../lib/Model";
 import { getProperty, paintStartTexture, processStyle, paintPolygon, paintLine, paintEndTexture } from "./context";
-import { Extent } from "../lib/Geometry";
-import Transform from '../lib/Transform';
-import { PainterCommand } from "../lib/waend";
-import { lineTransform } from "../lib/util/index";
+import { ModelProperties, Extent, Transform, PainterCommand } from "waend-lib";
+import { lineTransform } from "waend-util";
 
 
 interface Textures {

@@ -12,7 +12,7 @@ import { flow } from 'lodash';
 import * as Promise from 'bluebird';
 import * as opentype from 'opentype.js';
 import { vec2 } from "gl-matrix";
-import { DrawingInstruction } from "../lib/waend";
+import { DrawingInstruction } from "waend-lib";
 
 
 interface FontCollection {
@@ -35,23 +35,22 @@ const loadFont: (a: string) => Promise<opentype.Font> =
 
         const resolver: (a: ResolveFontFn, b: RejectFontFn) => void =
             (resolve, reject) => {
-                opentype.load(url,
-                    (err, font) => {
-                        if (err) {
-                            return reject(new Error(err));
-                        }
-                        else if (!font) {
+                fetch(url)
+                    .then((resp) => resp.arrayBuffer())
+                    .then((buffer) => {
+                        const font = opentype.parse(buffer);
+                        if (!font) {
                             return reject(new Error('CouldNotGetTheFont'));
                         }
-                        else {
-                            collection[url] = font;
-                            resolve(font);
-                        }
-                    });
-            };
+                        collection[url] = font;
+                        resolve(font);
 
+                    })
+                    .catch((err) => reject(err));
+            };
         return (new Promise(resolver));
     };
+
 
 
 export const select: (a: string[]) => Promise<FontArray> =

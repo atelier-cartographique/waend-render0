@@ -10,7 +10,7 @@
 
 import { use as useFont } from './Font';
 import { Font, Path as OTPath } from "opentype.js";
-import { vecDist, vecAdd } from "../lib/util/index";
+import { vecDist, vecAdd } from "waend-util";
 
 interface Path extends OTPath {
     segment: Segment;

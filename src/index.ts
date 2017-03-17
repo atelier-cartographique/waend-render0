@@ -9,20 +9,16 @@
  */
 
 import { start, FrameFn, DataFn } from './gate';
-import { Extent, Polygon, LineString } from "../lib/Geometry";
-import { GeoModel, ModelProperties } from '../lib/Model';
-import Transform from "../lib/Transform";
-import { polygonTransform, polygonProject, lineProject, lineTransform } from "../lib/util";
-import BaseSource from "../lib/BaseSource";
-import { PainterCommand, CoordLinestring, CoordPolygon, ImageOptions } from "../lib/waend";
+import { PainterCommand, CoordLinestring, CoordPolygon, ImageOptions, BaseSource, Extent, Polygon, LineString, GeoModel, ModelProperties, Transform } from "waend-lib";
+import { polygonTransform, polygonProject, lineProject, lineTransform } from "waend-util";
 import { paintLine, paintImage, processStyle, getParameter, paintSave, paintRestore, paintPolygon, paintApplyTexture, drawTextInPolygon, drawTextOnLine, drawTextInPolygonAuto } from "./context";
 import { getKey as getTextureKey, addTexture } from './texture';
 import { select as selectFont } from './Font';
-import config from '../config';
 import { lineString as turfLineString, polygon as turfPolygon } from "@turf/helpers";
 
 
-const DEFAULT_FONT_URL = `${config.baseUrl}/fonts/default`;
+
+const DEFAULT_FONT_URL = `${self.location.origin}/fonts/default`;
 const dataSource = new BaseSource<GeoModel>()
 let currentExtent: Extent;
 let currentTransform: Transform;
@@ -148,22 +144,24 @@ const polygon: (b: CoordPolygon, c: ModelProperties, d: Transform) => PainterCom
 
 
 const initData: DataFn =
-    (models) => {
+    (models, end) => {
         dataSource.clear();
         models.forEach((model) => {
             dataSource.addFeature(new GeoModel(model), true);
 
         });
         dataSource.buildTree();
+        end();
     }
 
 
 const updateData: DataFn =
-    (models) => {
+    (models, end) => {
         models.forEach((model) => {
             dataSource.removeFeature(model.id);
             dataSource.addFeature(new GeoModel(model));
         });
+        end();
     }
 
 

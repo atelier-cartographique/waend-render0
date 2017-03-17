@@ -1,6 +1,6 @@
 {
     "compilerOptions": {
-        "project": "src/render0",
+        "project": "src",
         "outDir": "js",
         "module": "commonjs",
         "moduleResolution": "node",
@@ -24,11 +24,6 @@
     "exclude": [
         "node_modules",
         "**/*.spec.ts",
-        "local_packages",
-        "src/commands",
-        "src/map",
-        "src/webconsole",
-        "src/embed",
-        "src/view"
+        "**/dom.*"
     ]
 }

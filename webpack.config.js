@@ -1,13 +1,13 @@
 
 const path = require('path');
 const webpack = require('webpack');
-const ClosureCompilerPlugin = require('webpack-closure-compiler');
+// const ClosureCompilerPlugin = require('webpack-closure-compiler');
 
 module.exports = {
     context: path.resolve(__dirname, 'src'),
 
     entry: {
-        render: './render0/index.ts'
+        render0: './index.ts'
     },
 
     output: {
@@ -42,7 +42,7 @@ module.exports = {
                     {
                         loader: 'awesome-typescript-loader',
                         options: {
-                            configFileName: path.resolve(__dirname, 'tsconfig-webworker.json'),
+                            configFileName: path.resolve(__dirname, 'tsconfig.json'),
                             // useBabel: true,
                             // useCache: true,
                             // babelOptions: {
@@ -55,7 +55,7 @@ module.exports = {
         ]
     },
 
-    devtool: 'inline-source-map',
+    devtool: 'source-map',
 
     plugins: [
         // new ClosureCompilerPlugin({

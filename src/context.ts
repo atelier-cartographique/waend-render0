@@ -9,23 +9,17 @@
  */
 
 import * as underscore from 'lodash';
-import Transform from '../lib/Transform';
-import { isZero, pathKey, vecDist, lineAngle } from '../lib/util';
+import { Polygon, Transform, ModelProperties, PainterCommandApplyTexture, PainterCommandClear, PainterCommandClearRect, CoordPolygon, PainterCommandImage, DrawingInstruction, PainterCommandInstructions, PainterCommandRestore, PainterCommandSave, PainterCommandEndTexture, ImageOptions, PainterCommandSet, ContextValue, PainterCommandStartTexture, PainterCommandTransform, PainterCommandLine, CoordLinestring, PolygonEnds, PainterCommandPolygon, PainterCommand } from "waend-lib";
+import { isZero, pathKey, vecDist, lineAngle } from 'waend-util';
 import Text, { Segment, TextCursor } from './Text';
-import { ModelProperties } from "../lib/Model";
-import { PainterCommandApplyTexture, PainterCommandClear, PainterCommandClearRect, CoordPolygon, PainterCommandImage, DrawingInstruction, PainterCommandInstructions, PainterCommandRestore, PainterCommandSave, PainterCommandEndTexture, ImageOptions, PainterCommandSet, ContextValue, PainterCommandStartTexture, PainterCommandTransform, PainterCommandLine, CoordLinestring, PolygonEnds, PainterCommandPolygon, PainterCommand } from "../lib/waend";
 import { isNumber } from "util";
 import { vec2 } from "gl-matrix";
-import { Polygon } from "../lib/Geometry";
 import { transformCommand } from "./Font";
 
-/*
 
+/*
 line intersect from paper.js
 */
-
-
-
 function lineIntersect(apx: number, apy: number, avx: number, avy: number, bpx: number, bpy: number, bvx: number, bvy: number, asVector: boolean,
     isInfinite: boolean) {
     // Convert 2nd points to vectors if they are not specified as such.
@@ -50,9 +44,11 @@ function lineIntersect(apx: number, apy: number, avx: number, avy: number, bpx: 
     return null;
 }
 
+
 function coordinatesLefter<T extends (vec2 | number[])>(a: T, b: T) {
     return (a[0] - b[0]);
 }
+
 
 function findIntersectSegment(coordinates: CoordPolygon, apx: number, apy: number, avx: number, avy: number) {
     const ret: number[][] = [];

@@ -4,9 +4,9 @@ import {
     MessageFrame, MessageInit, MessageUpdate,
     EventRenderFrame, EventRenderInit, EventRenderUpdate,
     ResponseAck, ResponseFrame
-} from '../map/Worker';
-import { ModelData } from "../lib/Model";
-import { PainterCommand } from "../lib/waend";
+} from 'waend-lib';
+
+import { ModelData, PainterCommand } from "waend-lib";
 
 
 
