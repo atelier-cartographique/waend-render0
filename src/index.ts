@@ -8,15 +8,20 @@
  *
  */
 
-import { start, FrameFn, DataFn } from './gate';
+import { start, FrameFn, DataFn, CancelFrameFn } from './gate';
 import { PainterCommand, CoordLinestring, CoordPolygon, ImageOptions, BaseSource, Extent, Polygon, LineString, GeoModel, ModelProperties, Transform } from "waend-lib";
 import { polygonTransform, polygonProject, lineProject, lineTransform } from "waend-util";
 import { paintLine, paintImage, processStyle, getParameter, paintSave, paintRestore, paintPolygon, paintApplyTexture, drawTextInPolygon, drawTextOnLine, drawTextInPolygonAuto } from "./context";
-import { getKey as getTextureKey, addTexture } from './texture';
+import { getKey as getTextureKey, addTexture, clearIndex as clearTextureIndex } from './texture';
 import { select as selectFont } from './Font';
 import { lineString as turfLineString, polygon as turfPolygon } from "@turf/helpers";
 
 
+interface FrameLoopIndex {
+    [frameId: string]: number;
+}
+
+const loopIndex: FrameLoopIndex = {};
 
 const DEFAULT_FONT_URL = `${self.location.origin}/fonts/default`;
 const dataSource = new BaseSource<GeoModel>()
@@ -45,7 +50,9 @@ const linestring: (b: CoordLinestring, c: ModelProperties, d: Transform) => Pain
         processStyle(commands, props, T);
         const txt = getParameter(props, 'text', null);
         if (txt) {
+            const ts = performance.now();
             textedLine(commands, coordinates, props, T);
+            console.log(`textedLine ${txt.length} ${performance.now() - ts}`);
         }
         else {
             lineProject(coordinates);
@@ -75,6 +82,7 @@ const hatchedPolygon: (a: PainterCommand[], b: CoordPolygon, d: ModelProperties,
         const [key, hasTexture] = getTextureKey(props, viewport, initialExtent, T);
 
         if (!hasTexture) {
+            console.log(`Missing Texture ${key}`);
             addTexture(key, props, viewport, initialExtent, T)
                 .forEach(c => { commands.push(c); });
         }
@@ -129,14 +137,17 @@ const polygon: (b: CoordPolygon, c: ModelProperties, d: Transform) => PainterCom
         processStyle(commands, props, T);
         const img = getParameter(props, 'image', null);
         const txt = getParameter(props, 'text', null);
+        const ts = performance.now();
         if (img) {
             imagedPolygon(commands, coordinates, img, props, T);
         }
         else if (txt) {
             textedPolygon(commands, coordinates, props, T);
+            console.log(`textedPolygon ${txt.length} ${performance.now() - ts}`);
         }
         else {
             hatchedPolygon(commands, coordinates, props, T);
+            // console.log(`hatchedPolygon  ${performance.now() - ts}`);
         }
 
         return commands;
@@ -183,15 +194,22 @@ const detectFonts: (a: GeoModel[]) => string[] =
     }
 
 
+
+
+
 const renderFrame: FrameFn =
-    (opt_extent, opt_matrix, frame) => {
+    (opt_extent, opt_matrix, frame, frameId) => {
         currentExtent = new Extent(opt_extent);
         currentTransform = Transform.fromFlatMatrix(opt_matrix);
+        clearTextureIndex();
 
         const poly = currentExtent.toPolygon().getCoordinates();
-        const tpoly = currentExtent.toPolygon();
         polygonProject(poly);
         polygonTransform(currentTransform, poly);
+        const tpoly = new Polygon({
+            type: 'Polygon',
+            coordinates: poly
+        });
         viewport = tpoly.getExtent();
 
         const features = dataSource.getFeatures(opt_extent);
@@ -218,10 +236,37 @@ const renderFrame: FrameFn =
 
         const processWithFonts =
             () => {
-                frame(
-                    features.map<PainterCommand[]>(processFeature)
-                        .reduce((acc, cs) => acc.concat(cs), [])
-                );
+                const ts = performance.now();
+                const batchSize = 1024;
+                let offset = 0;
+
+                loopIndex[frameId] = self.setInterval(() => {
+                    console.log(`Batch ${frameId} ${offset}/${features.length}`);
+                    let commands: PainterCommand[] = [];
+                    const limit = offset + batchSize;
+                    for (let i = offset; i < limit; i++) {
+                        if (i < features.length) {
+                            processFeature(features[i]).forEach((pc) => {
+                                commands.push(pc);
+                            })
+                        }
+                        else {
+                            clearInterval(loopIndex[frameId]);
+                            delete loopIndex[frameId];
+                            const elapsed = Math.ceil(performance.now() - ts);
+                            console.log(`Built Frame ${frameId} With ${features.length} Features In ${elapsed}ms`);
+                            break;
+                        }
+
+                    }
+                    frame(commands);
+                    offset = limit;
+                    // const slice = features.slice(offset, offset + batchSize);
+                    // offset += slice.length;
+                    // commands = features.map<PainterCommand[]>(processFeature)
+                    //     .reduce((acc, cs) => acc.concat(cs), commands);
+                }, 1);
+
             };
 
         selectFont(detectFonts(features))
@@ -229,4 +274,12 @@ const renderFrame: FrameFn =
     };
 
 
-start(initData, updateData, renderFrame);
+const cancelFrame: CancelFrameFn =
+    (frameId) => {
+        if (frameId in loopIndex) {
+            clearInterval(loopIndex[frameId]);
+            delete loopIndex[frameId];
+        }
+    }
+
+start(initData, updateData, renderFrame, cancelFrame);

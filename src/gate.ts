@@ -1,8 +1,8 @@
 
 
 import {
-    MessageFrame, MessageInit, MessageUpdate,
-    EventRenderFrame, EventRenderInit, EventRenderUpdate,
+    MessageFrame, MessageCancel, MessageInit, MessageUpdate,
+    EventRenderFrame, EventCancelFrame, EventRenderInit, EventRenderUpdate,
     ResponseAck, ResponseFrame
 } from 'waend-lib';
 
@@ -10,7 +10,7 @@ import { ModelData, PainterCommand } from "waend-lib";
 
 
 
-type MessageData = MessageFrame | MessageInit | MessageUpdate;
+type MessageData = MessageFrame | MessageInit | MessageUpdate | MessageCancel;
 
 interface RenderMessageEvent extends MessageEvent {
     data: MessageData;
@@ -40,10 +40,11 @@ const emitAck: (a: string) => () => void =
     }
 
 export type DataFn = (a: ModelData[], b: () => void) => void;
-export type FrameFn = (a: number[], b: number[], c: (d: PainterCommand[]) => void) => void;
+export type FrameFn = (a: number[], b: number[], c: (d: PainterCommand[]) => void, e: string) => void;
+export type CancelFrameFn = (a: string) => void;
 
-export const start: (a: DataFn, b: DataFn, c: FrameFn) => void =
-    (initData, updateData, renderFrame) => {
+export const start: (a: DataFn, b: DataFn, c: FrameFn, d: CancelFrameFn) => void =
+    (initData, updateData, renderFrame, cancelFrame) => {
         const messageHandler: (a: RenderMessageEvent) => void =
             (event) => {
                 switch (event.data.name) {
@@ -57,7 +58,11 @@ export const start: (a: DataFn, b: DataFn, c: FrameFn) => void =
 
                     case EventRenderFrame:
                         renderFrame(event.data.extent, event.data.transform,
-                            emitFrame(event.data.id));
+                            emitFrame(event.data.id), event.data.id);
+                        break;
+
+                    case EventCancelFrame:
+                        cancelFrame(event.data.id);
                         break;
                 }
             };
