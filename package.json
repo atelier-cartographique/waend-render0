@@ -39,7 +39,7 @@
     "typescript": "^2.2.1",
     "uuid": "^3.0.1",
     "waend-lib": "github:atelier-cartographique/waend-lib",
-    "waend-util": "github:atelier-cartographique/waend-util",
+    "waend-util": "../waend-util",
     "webpack": "^2.2.1",
     "webpack-closure-compiler": "^2.1.4"
   },
